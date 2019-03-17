@@ -15,7 +15,7 @@
 - [Python for Windows Extensions (pywin32-220)](https://sourceforge.net/projects/pywin32/files/pywin32/);
 
 ### 运行界面
-![N|Solid](https://github.com/QuinnSong/QesGen/blob/master/demo/LoveMath.png)
+![](https://github.com/QuinnSong/QesGen/blob/master/ui/LoveMath.png)
 
 
 ### 2019.03.17
