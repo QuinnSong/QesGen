@@ -2,8 +2,7 @@
 
 ###########################################################################
 ## Python code generated with wxFormBuilder (version Jun 17 2015) 
-## Last update: 2018-12-06
-## version 1.30
+## Last update: 2019-03-18
 ###########################################################################
 
 # section imports -----------------------------
@@ -29,9 +28,10 @@ OPS = ['+', '-', '*', '/']
 BAD_PATTERN_1 = '\d+\/\d+\/'
 BAD_PATTERN_2 = '(\d+)\/(\d+)'
 SIGNS =[ u"( )", u"□", u"?", u"__" ]
-VER = 'v1.30' # software version
-BUILD = 'Build 181206'
+VER = 'v1.31' # software version
+BUILD = 'Build 190318'
 AUTHOR = 'QUINN' #MIDI @CCF :)
+CONTACT = u'联系QQ：47396280'
 # ---------------------------------------------
 
 # defined for threading events
@@ -104,7 +104,8 @@ class CountingThread(threading.Thread):
 class ExpressionGenerator ( wx.Dialog ):
         
         def __init__( self, parent ):
-                wx.Dialog.__init__ ( self, parent, id = wx.ID_ANY, title = u"四则运算题库 %s" % (VER), pos = wx.DefaultPosition, size = wx.Size( 1020,650 ), style = wx.DEFAULT_DIALOG_STYLE|wx.MINIMIZE_BOX|wx.RESIZE_BORDER|wx.MAXIMIZE_BOX )
+                wx.Dialog.__init__ ( self, parent, id = wx.ID_ANY, title = u"四则运算题库 %s" % (VER), pos = wx.DefaultPosition,
+                    size = wx.Size( 1020,650 ), style = wx.DEFAULT_DIALOG_STYLE|wx.MINIMIZE_BOX|wx.RESIZE_BORDER|wx.MAXIMIZE_BOX )
                 
                 self.SetSizeHintsSz ((1130, 550), wx.DefaultSize )
                 # init icons
@@ -313,7 +314,7 @@ class ExpressionGenerator ( wx.Dialog ):
                 
                 sbSizerRange = wx.StaticBoxSizer( wx.StaticBox( self.m_panelSettings, wx.ID_ANY, u"操作数范围" ), wx.HORIZONTAL )
                 
-                m_comboBoxRangeChoices = [ u"5", u"10", u"50", u"100", u"1000", u"10000" ]
+                m_comboBoxRangeChoices = [ u"5", u"10", u"20", u"50", u"100", u"1000", u"10000" ]
                 self.m_comboBoxRange = wx.ComboBox( sbSizerRange.GetStaticBox(), wx.ID_ANY, str(self.max_num), wx.DefaultPosition, wx.Size( 60,-1 ), m_comboBoxRangeChoices, 0 )
                 sbSizerRange.Add( self.m_comboBoxRange, 0, wx.ALL, 5 )
                 
@@ -356,7 +357,7 @@ class ExpressionGenerator ( wx.Dialog ):
                 self.m_checkBoxCarryBorrow = wx.CheckBox( sbSizerCarryBorrow.GetStaticBox(), wx.ID_ANY, u"要求", wx.DefaultPosition, wx.DefaultSize, 0 )
                 sbSizerCarryBorrow.Add( self.m_checkBoxCarryBorrow, 0, wx.ALL, 10 )
                 self.m_checkBoxCarryBorrow.SetValue(self.carry_borrow)
-                self.m_checkBoxCarryBorrow.SetToolTipString('勾选它，可以限制100以内的加法/减法，并带有借位/进位')
+                self.m_checkBoxCarryBorrow.SetToolTipString('勾选它，可以生成操作数范围内的加法/减法，并带有借位/进位')
                 gSizerMain.Add( sbSizerCarryBorrow, 1, wx.EXPAND, 5 )
 
                 sbSizerStudentSpecialMode = wx.StaticBoxSizer(wx.StaticBox(self.m_panelSettings, wx.ID_ANY, u"小学生选项"), wx.HORIZONTAL)
@@ -557,7 +558,7 @@ class ExpressionGenerator ( wx.Dialog ):
                 self.m_staticTextComments = wx.StaticText( self.m_panelAbout, wx.ID_ANY, u"四则运算题库 %s %s" % (VER, BUILD), wx.DefaultPosition, wx.DefaultSize, 0 )
                 self.m_staticTextComments.Enable( False )
                 
-                self.m_staticTextContact = wx.StaticText( self.m_panelAbout, wx.ID_ANY, u"联系QQ：47396280", wx.DefaultPosition, wx.DefaultSize, 0 )
+                self.m_staticTextContact = wx.StaticText( self.m_panelAbout, wx.ID_ANY, u"%s" % (CONTACT), wx.DefaultPosition, wx.DefaultSize, 0 )
                 self.m_staticTextContact.Enable( False )
                 
                 bSizerAbout.Add( self.m_staticTextComments, 0, wx.ALIGN_CENTER|wx.ALL, 10 )
@@ -704,7 +705,7 @@ class ExpressionGenerator ( wx.Dialog ):
                 #self.m_checkBoxCheckEveryStep.Enable(not flag)
                 if flag:
                     self.m_comboBoxRange.SetValue('100')
-                self.m_comboBoxRange.Enable(not flag)
+                #self.m_comboBoxRange.Enable(not flag)
                 if event:
                     event.Skip()
 
@@ -1036,14 +1037,24 @@ class ExpressionGenerator ( wx.Dialog ):
                         #op = random.sample(self.opers, len(self.opers))
                         # Just one and zero
                         zero_and_one = [0] * (not self.exclude_zero) + [1] * (not self.exclude_one)
+                        add_or_minus = self.m_checkBoxAdd.GetValue() or self.m_checkBoxMinus.GetValue()
+                        mul_or_div = (self.m_checkBoxMulti.GetValue() or self.m_checkBoxDiv.GetValue())
+
+                        # ignore self.carry_borrow if only multi and div are checked
+                        if (mul_or_div and (not add_or_minus)):
+                            self.carry_borrow = False
+                            self.m_checkBoxCarryBorrow.SetValue(False)
+
                         if self.student_special_mode:
                                 op = random.sample(self.opers, len(self.opers))
-                                random_list = random.sample( zero_and_one + list(xrange(2, 10 + 1)) * 50 + list(xrange(2, 100 + 1)), self.max_steps + 1)
+                                random_list = random.sample( zero_and_one + mul_or_div* list(xrange(2, 10 + 1)) * 50 + add_or_minus * list(xrange(2, 100 + 1)), self.max_steps + 1)
                         else:
                                 random_list = random.sample( zero_and_one + list(xrange(2, self.max_num + 1)), self.max_steps + 1)
                                 op = self.randomList(self.max_steps * self.opers)
+                                random.shuffle(op)
 
                         exp = ''.join([item for pair in zip([str(x) for x in random_list], list(op) + [0]) for item in pair][:-1])
+
                         # exp = ''.join( [ item for pair in zip([str(x) for x in random.sample( range(int(self.exclude_zero), self.max_num + 1), self.max_steps + 1)],  \
                         #     list(op) + [0]) for item in pair][:-1])
                         if re.findall(BAD_PATTERN_1, exp):
@@ -1058,21 +1069,13 @@ class ExpressionGenerator ( wx.Dialog ):
                                 exp = re.sub('(.*)\((\d+)\)(.*)', '\g<1>\g<2>\g<3>', exp )
                                 exp = re.sub('(.*)\(\((.*)\)\)(.*)', '\g<1>\g<2>\g<3>', exp )
 
-                                if self.carry_borrow:
-                                    if (not hasCarryOrBorrow(exp)) or (not isExpValid(exp, self.max_num, self.student_special_mode)):
+                                if  ( not isExpValid(exp, self.max_num, self.student_special_mode, self.carry_borrow, self.check_every_step)):
                                         continue
-                                else:
-                                    # carry or borrow is not allowed
-                                    if hasCarryOrBorrow(exp) or (not isExpValid(exp, self.max_num, self.student_special_mode)):
-                                            # carry or borrow is required, then skip it
-                                            continue
-                                    if self.check_every_step and ( not isExpValid(exp, self.max_num, self.student_special_mode)):
-                                        continue
-                                    if self.allow_decimal_one and (not self.allow_decimal_two):
+                                if self.allow_decimal_one and (not self.allow_decimal_two):
                                         exp = convertToDecimal(exp, SEED_ONE)
-                                    elif self.allow_decimal_one and self.allow_decimal_two:
+                                elif self.allow_decimal_one and self.allow_decimal_two:
                                         exp = convertToDecimal(exp, SEED_ONE_TWO)
-                                    elif (not self.allow_decimal_one) and self.allow_decimal_two:
+                                elif (not self.allow_decimal_one) and self.allow_decimal_two:
                                         exp = convertToDecimal(exp, SEED_TWO)
                                 
                                 result = eval(exp)
