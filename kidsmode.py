@@ -6,6 +6,7 @@ import re
 MD_PATTERN = '(\d+(\*|/)\d+)'  ## * AND /
 AM_PATTERN = '(\d+(\+|-)\d+)'  ## + AND -
 BRACKETS_PATTERN = '.*?(\([^)(]+\))'  ## ( AND )
+BAD_PATTERN_1 = '^\([\d\-+]+\)[\d\-\+]+$'
 
 
 def replace_ops(exp, pattern, num_limit, student_special_mode, check_every_step):
@@ -30,12 +31,13 @@ def replace_ops(exp, pattern, num_limit, student_special_mode, check_every_step)
             if md[0][1] in ['*','/'] and len(md[0][0]) > 3 or eval(md[0][0]) >= 10:
                 exp = None
                 break
-            # no reminder allowed
-            if md[0][1] == '/':
-                i, j = md[0][0].split('/')
-                if int(i) % int(j) != 0:
-                    exp = None
-                    break
+        # no reminder allowed
+        if md[0][1] == '/':
+            i, j = md[0][0].split('/')
+            if int(i) % int(j) != 0:
+                exp = None
+                break
+
         if (check_every_step and eval(md[0][0]) not in range(0, num_limit + 1)):
             exp = None
             break
@@ -45,7 +47,7 @@ def replace_ops(exp, pattern, num_limit, student_special_mode, check_every_step)
     return exp
 
 
-def replace_brackets(exp, num_limit, student_special_mode):
+def replace_brackets(exp, num_limit, student_special_mode, check_every_step):
     """
     1) for (), make sure all exps in brackets result is in range limit
     2) finally replace () with actual result values
@@ -61,7 +63,7 @@ def replace_brackets(exp, num_limit, student_special_mode):
             exp = None
             break
         for b in brackets:
-            tmp = check_in_brackets(b.strip(')('), num_limit, student_special_mode)
+            tmp = check_in_brackets(b.strip(')('), num_limit, student_special_mode, check_every_step)
             if not tmp:
                 exp = None
                 break
@@ -99,15 +101,15 @@ def isExpValid(exp, num_limit, student_special_mode, carry_or_borrow, check_ever
         return False
 
     # carry/borrow checkup
-    if (carry_or_borrow and (not hasCarryOrBorrow(exp))):
+    if not (carry_or_borrow == hasCarryOrBorrow(exp)):
+        return False
+
+    if re.match(BAD_PATTERN_1, exp):
         return False
 
     # calculate exp in brackets
-    exp = replace_brackets(exp, num_limit, student_special_mode)
-    if exp and check_in_brackets(exp, num_limit, student_special_mode, check_every_step):
-        return True
-    else:
-        return False
+    exp = replace_brackets(exp, num_limit, student_special_mode, check_every_step)
+    return exp and check_in_brackets(exp, num_limit, student_special_mode, check_every_step)
 
 
 def convertToDecimal(exp, seed, num_decimal=2):
@@ -151,6 +153,15 @@ def hasCarryOrBorrow(exp):
             # print pair
             return any([eval(x + grp[0][1] + y) >= 10 or eval(x + grp[0][1] + y) < 0 for x, y in pair])
 
+def meetDigitLength(exp, totalDigits):
+    """
+    Check expression to see if it meets requirement for total digits
+    :param exp: math expression
+    :param lenRequired:
+    :return: True if requirement is met; False otherwise
+    """
+    total_digits_list = re.findall('\d+', exp)
+    return all([len(i)==totalDigits for i in total_digits_list])
 
 if __name__ == '__main__':
     s1 = '23+18'
@@ -159,7 +170,7 @@ if __name__ == '__main__':
     s4 = '66-27+45'
     s0 = '31-99'
     s11 = '333-9'
-    a = '(212 + 2) - (71 - 811)'
+    a = '(212+2)-(821-702)'
     # print isExpValid('((5+2)*1+3-10)+2*3', 5)
     # print isExpValid('6+(3-2)+5', 6)
     # print isExpValid('(6-3)*6', 10)
@@ -169,5 +180,6 @@ if __name__ == '__main__':
     # print isExpValid('93+45-97', 100, True)
     # print hasCarryOrBorrow('82*1113')
     # print calCarryOrBorrow('8-8+9', 10)
-    print isExpValid('8*18/9', 20, False, False, True)
+    # print isExpValid('8*18/9', 20, False, False, True)
+    print isExpValid('18-(5+48)/16*3', 2000, False, True, True)
     # print isExpValid('7/(1+7)*6', 100, True)
