@@ -31,7 +31,7 @@ WIN_Target = cxExecutable(
 setup(
     name=u'四则运算题库',
     description=u"自动生成四则运算题",
-    version=u'1.31',
+    version=u'1.33',
     author=u'Quinn',
     
     options={'build_exe' : opts},
