@@ -27,8 +27,8 @@ OPS = ['+', '-', '*', '/']
 BAD_PATTERN_1 = '\d+\/\d+\/'
 BAD_PATTERN_2 = '(\d+)\/(\d+)'
 SIGNS =[ u"( )", u"¡õ", u"?", u"__" ]
-VER = 'v1.33' # software version
-BUILD = 'Build 190526'
+VER = 'v1.35' # software version
+BUILD = 'Build 200329'
 AUTHOR = 'QUINN' #MIDI @CCF :)
 CONTACT = u'ÁªÏµQQ£º47396280'
 # ---------------------------------------------
